@@ -11,14 +11,14 @@ const ChatWindow = ({ chat }) => {
   const [newMessage, setNewMessage] = useState('');
   const scrollRef = useRef();
 
-  const fetchMessages = async () => {
-    if (chat) {
-      const data = await ChatService.getMessages(user.id, chat.id, chat.isGroup);
-      setMessages(data);
-    }
-  };
-
   useEffect(() => {
+    const fetchMessages = async () => {
+      if (chat) {
+        const data = await ChatService.getMessages(user.id, chat.id, chat.isGroup);
+        setMessages(data);
+      }
+    };
+
     fetchMessages();
     const interval = setInterval(fetchMessages, 3000); // Poll every 3 seconds
 

@@ -37,7 +37,7 @@ export default async function handler(req, res) {
     
     // Remove password before sending back
     delete newUser.password;
-    newUser.id = result.insertedId;
+    newUser.id = result.insertedId.toString();
 
     res.status(201).json({ success: true, user: newUser });
   } catch (error) {

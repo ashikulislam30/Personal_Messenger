@@ -19,82 +19,58 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (identifier, password) => {
-    try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identifier, password })
-      });
-      const data = await res.json();
-      
-      if (res.ok) {
-        await localforage.setItem('activeUser', data.user);
-        setUser(data.user);
-        return { success: true };
-      }
-      return { success: false, message: data.message };
-    } catch (error) {
-      return { success: false, message: 'Server connection failed' };
+    const users = (await localforage.getItem('users')) || [];
+    const foundUser = users.find(
+      u => (u.username === identifier || u.email === identifier) && u.password === password
+    );
+
+    if (foundUser) {
+      const { password, ...safeUser } = foundUser;
+      await localforage.setItem('activeUser', safeUser);
+      setUser(safeUser);
+      return { success: true };
     }
+    return { success: false, message: 'Invalid credentials' };
   };
 
   const register = async (userData) => {
-    try {
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userData)
-      });
-      const data = await res.json();
-
-      if (res.ok) {
-        await localforage.setItem('activeUser', data.user);
-        setUser(data.user);
-        return { success: true };
-      }
-      return { success: false, message: data.message };
-    } catch (error) {
-      return { success: false, message: 'Registration failed' };
+    const users = (await localforage.getItem('users')) || [];
+    
+    if (users.find(u => u.username === userData.username)) {
+      return { success: false, message: 'Username already taken' };
     }
+    if (users.find(u => u.email === userData.email)) {
+      return { success: false, message: 'Email already registered' };
+    }
+
+    const newUser = { ...userData, id: crypto.randomUUID(), createdAt: new Date() };
+    users.push(newUser);
+    await localforage.setItem('users', users);
+    
+    // Auto login
+    const { password, ...safeUser } = newUser;
+    await localforage.setItem('activeUser', safeUser);
+    setUser(safeUser);
+    
+    return { success: true };
   };
 
   const updateProfile = async (updates) => {
-    try {
-      const res = await fetch('/api/users/update', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id, updates })
-      });
-      const data = await res.json();
-
-      if (res.ok) {
-        await localforage.setItem('activeUser', data.user);
-        setUser(data.user);
-        return { success: true };
+    const users = (await localforage.getItem('users')) || [];
+    const updatedUsers = users.map(u => {
+      if (u.id === user.id) {
+        return { ...u, ...updates };
       }
-      return { success: false, message: data.message };
-    } catch (error) {
-      return { success: false, message: 'Update failed' };
-    }
-  };
+      return u;
+    });
 
-  const deleteAccount = async () => {
-    try {
-      const res = await fetch('/api/users/delete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id })
-      });
-      
-      if (res.ok) {
-        await logout();
-        return { success: true };
-      }
-      const data = await res.json();
-      return { success: false, message: data.message };
-    } catch (error) {
-      return { success: false, message: 'Deletion failed' };
-    }
+    await localforage.setItem('users', updatedUsers);
+    
+    const currentUser = updatedUsers.find(u => u.id === user.id);
+    const { password, ...safeUser } = currentUser;
+    await localforage.setItem('activeUser', safeUser);
+    setUser(safeUser);
+    return { success: true };
   };
 
   const logout = async () => {
@@ -103,7 +79,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, updateProfile, deleteAccount, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, register, updateProfile, logout, loading }}>
       {!loading && children}
     </AuthContext.Provider>
   );

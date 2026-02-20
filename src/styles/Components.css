@@ -146,25 +146,6 @@
 .unchecked { color: var(--text-muted); }
 .modal-footer {
   margin-top: 24px;
-  display: flex;
-  gap: 12px;
-}
-.delete-btn {
-  padding: 12px;
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
-  border: 1px solid rgba(239, 68, 68, 0.2);
-  font-weight: 600;
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.delete-btn:hover:not(:disabled) {
-  background: rgba(239, 68, 68, 0.2);
-}
-.primary-btn {
-  flex: 2;
 }
 
 /* Settings Modal & Profile Image */

@@ -1,11 +1,11 @@
 import React, { useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { X, Camera, Save, User as UserIcon, Trash2 } from 'lucide-react';
+import { X, Camera, Save, User as UserIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import '../styles/Components.css';
 
 const SettingsModal = ({ isOpen, onClose }) => {
-  const { user, updateProfile, deleteAccount } = useAuth();
+  const { user, updateProfile } = useAuth();
   const [formData, setFormData] = useState({
     firstName: user.firstName,
     lastName: user.lastName,
@@ -13,7 +13,6 @@ const SettingsModal = ({ isOpen, onClose }) => {
   });
   const [preview, setPreview] = useState(user.profileImage || '');
   const [loading, setLoading] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
   const fileInputRef = useRef();
 
   const handleFileChange = (e) => {
@@ -38,17 +37,6 @@ const SettingsModal = ({ isOpen, onClose }) => {
     await updateProfile(formData);
     setLoading(false);
     onClose();
-  };
-
-  const handleDeleteAccount = async () => {
-    if (window.confirm('Are you absolutely sure you want to delete your account? This action cannot be undone.')) {
-      setIsDeleting(true);
-      const result = await deleteAccount();
-      if (!result.success) {
-        alert(result.message);
-        setIsDeleting(false);
-      }
-    }
   };
 
   if (!isOpen) return null;
@@ -120,10 +108,6 @@ const SettingsModal = ({ isOpen, onClose }) => {
           </div>
 
           <div className="modal-footer">
-            <button type="button" className="delete-btn" onClick={handleDeleteAccount} disabled={isDeleting}>
-              <Trash2 size={18} style={{ marginRight: 8 }} />
-              {isDeleting ? 'Deleting...' : 'Delete Account'}
-            </button>
             <button type="submit" className="primary-btn" disabled={loading}>
               <Save size={18} style={{ marginRight: 8 }} />
               {loading ? 'Saving...' : 'Save Changes'}

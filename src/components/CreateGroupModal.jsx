@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ChatService } from '../services/ChatService';
 import { useAuth } from '../context/AuthContext';
-import { X, CheckSquare, Square, Users } from 'lucide-react';
+import { X, CheckSquare, Square } from 'lucide-react';
 import { motion } from 'framer-motion';
 import '../styles/Components.css';
 

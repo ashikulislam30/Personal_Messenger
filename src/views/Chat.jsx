@@ -15,12 +15,12 @@ const Chat = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
 
-  const fetchConversations = async () => {
-    const data = await ChatService.getConversations(user.id);
-    setConversations(data);
-  };
-
   useEffect(() => {
+    const fetchConversations = async () => {
+      const data = await ChatService.getConversations(user.id);
+      setConversations(data);
+    };
+    
     fetchConversations();
     const interval = setInterval(fetchConversations, 5000); // Poll list every 5 seconds
     
