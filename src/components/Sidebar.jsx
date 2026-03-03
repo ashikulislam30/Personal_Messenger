@@ -57,7 +57,7 @@ const Sidebar = ({ conversations, activeChat, setActiveChat, onSearchClick, onCr
             <motion.div 
               key={chat.id}
               whileHover={{ x: 4 }}
-              className={`chat-item ${activeChat?.id === chat.id ? 'active' : ''}`}
+              className={`chat-item ${activeChat?.id === chat.id ? 'active' : ''} ${chat.hasUnread ? 'unread' : ''}`}
               onClick={() => setActiveChat(chat)}
             >
               <div className={`chat-avatar ${chat.isGroup ? 'group' : ''}`}>

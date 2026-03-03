@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { X, Camera, Save, User as UserIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import '../styles/Components.css';
+import { h1 } from 'framer-motion/client';
 
 const SettingsModal = ({ isOpen, onClose }) => {
   const { user, updateProfile } = useAuth();
@@ -121,3 +122,5 @@ const SettingsModal = ({ isOpen, onClose }) => {
 };
 
 export default SettingsModal;
+
+

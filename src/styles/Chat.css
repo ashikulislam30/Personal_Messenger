@@ -47,8 +47,12 @@
   animation: glow 2s infinite alternate;
 }
 @keyframes glow {
-  from { box-shadow: 0 0 5px rgba(99, 102, 241, 0.2); }
-  to { box-shadow: 0 0 15px rgba(99, 102, 241, 0.4); }
+  from {
+    box-shadow: 0 0 5px rgba(99, 102, 241, 0.2);
+  }
+  to {
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+  }
 }
 
 /* Sidebar Styles */
@@ -173,6 +177,19 @@
   background: rgba(99, 102, 241, 0.15);
   border: 1px solid rgba(99, 102, 241, 0.3);
 }
+.chat-item.unread {
+  background: rgba(99, 102, 241, 0.1);
+  border-left: 3px solid var(--primary);
+}
+.chat-item.unread .chat-name {
+  color: #fff;
+  font-weight: 700;
+  text-shadow: 0 0 8px rgba(99, 102, 241, 0.8), 0 0 12px rgba(99, 102, 241, 0.4);
+}
+.chat-item.unread .chat-preview {
+  color: var(--primary);
+  font-weight: 500;
+}
 .chat-avatar {
   width: 44px;
   height: 44px;
@@ -281,6 +298,14 @@
   color: var(--text-main);
   border: 1px solid var(--glass-border);
   border-bottom-left-radius: 4px;
+  display: flex;
+  flex-direction: column;
+}
+.sender-name {
+  font-size: 11px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  letter-spacing: 0.02em;
 }
 .timestamp {
   font-size: 10px;

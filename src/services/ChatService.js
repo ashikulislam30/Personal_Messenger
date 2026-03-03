@@ -35,6 +35,11 @@ export const ChatService = {
     return newGroup;
   },
 
+  async markAsRead(userId, chatId) {
+    const key = `lastRead_${userId}_${chatId}`;
+    await localforage.setItem(key, new Date().toISOString());
+  },
+
   async getConversations(userId) {
     const groups = (await localforage.getItem('groups')) || [];
     const userGroups = groups.filter(g => g.participants.includes(userId));
@@ -57,7 +62,28 @@ export const ChatService = {
         isGroup: false
       }));
 
-    return [...userGroups, ...privateChats];
+    const allConversations = [...userGroups, ...privateChats];
+
+    // Check for unread messages
+    const enhancedConversations = await Promise.all(allConversations.map(async chat => {
+      const key = `lastRead_${userId}_${chat.id}`;
+      const lastRead = await localforage.getItem(key);
+      
+      const chatMessages = chat.isGroup 
+        ? messages.filter(m => m.groupId === chat.id)
+        : messages.filter(m => 
+            (m.senderId === userId && m.receiverId === chat.id) ||
+            (m.senderId === chat.id && m.receiverId === userId)
+          );
+
+      const hasUnread = chatMessages.some(m => 
+        m.senderId !== userId && (!lastRead || new Date(m.timestamp) > new Date(lastRead))
+      );
+
+      return { ...chat, hasUnread };
+    }));
+
+    return enhancedConversations;
   },
 
   async sendMessage(senderId, targetId, content, isGroup) {
@@ -76,13 +102,38 @@ export const ChatService = {
 
   async getMessages(userId, targetId, isGroup) {
     const messages = (await localforage.getItem('messages')) || [];
+    const users = (await localforage.getItem('users')) || [];
+    
+    let filteredMessages = [];
     if (isGroup) {
-      return messages.filter(m => m.groupId === targetId);
+      filteredMessages = messages.filter(m => m.groupId === targetId);
     } else {
-      return messages.filter(m => 
+      filteredMessages = messages.filter(m => 
         (m.senderId === userId && m.receiverId === targetId) ||
         (m.senderId === targetId && m.receiverId === userId)
       );
     }
+
+    // Enhance messages with sender details
+    return filteredMessages.map(m => {
+      const sender = users.find(u => u.id === m.senderId);
+      return {
+        ...m,
+        senderName: sender ? `${sender.firstName} ${sender.lastName}` : 'Unknown User',
+        senderColor: this.generateColor(m.senderId)
+      };
+    });
+  },
+
+  generateColor(id) {
+    const colors = [
+      '#6366f1', '#10b981', '#f59e0b', '#ef4444', 
+      '#3b82f6', '#8b5cf6', '#ec4899', '#06b6d4'
+    ];
+    let hash = 0;
+    for (let i = 0; i < id.length; i++) {
+      hash = id.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return colors[Math.abs(hash) % colors.length];
   }
 };

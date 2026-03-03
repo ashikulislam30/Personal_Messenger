@@ -10,26 +10,37 @@ const ChatWindow = ({ chat }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const scrollRef = useRef();
+  const audioRef = useRef(new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3'));
+  const prevMessageCount = useRef(0);
+
+  const fetchMessages = async () => {
+    if (chat) {
+      const data = await ChatService.getMessages(user.id, chat.id, chat.isGroup);
+      setMessages(data);
+    }
+  };
 
   useEffect(() => {
-    const fetchMessages = async () => {
-      if (chat) {
-        const data = await ChatService.getMessages(user.id, chat.id, chat.isGroup);
-        setMessages(data);
-      }
-    };
-
     fetchMessages();
     const interval = setInterval(fetchMessages, 3000); // Poll every 3 seconds
-
+    ChatService.markAsRead(user.id, chat.id); // Mark as read on open
     return () => clearInterval(interval);
   }, [chat, user.id]);
 
   useEffect(() => {
+    if (messages.length > prevMessageCount.current) {
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage && lastMessage.senderId !== user.id) {
+        audioRef.current.play().catch(e => console.log('Audio play blocked:', e));
+      }
+      ChatService.markAsRead(user.id, chat.id);
+    }
+    prevMessageCount.current = messages.length;
+    
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages, chat.id, user.id]);
 
   const handleSend = async (e) => {
     e.preventDefault();
@@ -75,6 +86,11 @@ const ChatWindow = ({ chat }) => {
               className={`message-wrapper ${m.senderId === user.id ? 'sent' : 'received'}`}
             >
               <div className="message-content">
+                {chat.isGroup && m.senderId !== user.id && (
+                  <span className="sender-name" style={{ color: m.senderColor }}>
+                    {m.senderName}
+                  </span>
+                )}
                 <p>{m.content}</p>
                 <span className="timestamp">
                   {new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
